@@ -1,0 +1,23 @@
+# --- SECRETS (Do NOT remove) ---
+# This ensures my private API keys never go to GitHub
+.env
+
+# --- PYTHON JUNK ---
+# These are temporary files Python creates when it runs; they don't belong in a repo
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# --- DATA ---
+# Ignore the contents of these folders (don't upload massive CSV files)
+data/raw/*
+data/processed/*
+
+# --- EDITOR SETTINGS ---
+# Hides personal VS Code window settings
+.vscode/
+
+# --- SYSTEM FILES ---
+.DS_Store
+Thumbs.db
