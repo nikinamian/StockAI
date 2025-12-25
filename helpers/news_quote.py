@@ -1,5 +1,7 @@
 import yfinance as yf
 
+# CURRENTLY WORKING ON THIS
+
 def get_supporting_quote(symbol):
     try:
         # initialize the ticker object to find news stories
