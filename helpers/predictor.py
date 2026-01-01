@@ -65,7 +65,8 @@ def predict_next_close(symbol):
                 'upper_band': y_trend + std_dev, 
                 'lower_band': y_trend - std_dev, 
                 'target_price': prediction,
-                'analyst_target' : analyst_target
+                'analyst_target' : analyst_target,
+                "current_price": current_price
             }
         }
 
@@ -77,30 +78,41 @@ def show_plot(symbol, plot_data):
 
     # get analyst target from plot data dictionary
     analyst_target = plot_data.get('analyst_target')
+
+    # plot the ai generated trendline
+    plt.plot(plot_data['dates'], plot_data['trend'], label="AI Trend", color="red", linestyle="--")
     
     # plot the actual historical price
     plt.plot(plot_data['dates'], plot_data['actual'], label="Price", color="#1f77b4", alpha=0.8)
+
     # label the exact current price at the last data point
-    current_price = plot_data['actual'][-1]
-    plt.text(plot_data['dates'][-1], current_price, f'  ${current_price:.2f}', 
-             verticalalignment='center', fontweight='bold', color='#1f77b4')
+    #current_price = plot_data['actual'][-1]
+    #plt.text(plot_data['dates'][-1], current_price, f'  ${current_price:.2f}', 
+            # verticalalignment='top', fontweight='bold', color='#1f77b4')
+    
     # label the exact AI target price 
     prediction = plot_data['target_price']
     plt.text(plot_data['dates'][-1], prediction, f'  ${prediction:.2f}', 
-             verticalalignment='center', fontweight='bold', color='#1f77b4')
-    # add analyst target line and label
-    plt.axhline(y=analyst_target, color='orange', linestyle='--', alpha=0.6, label="Analyst Target")
-    plt.text(plot_data['dates'][0], analyst_target, f' Analyst Target: ${analyst_target:.2f}', 
-             color='orange', fontweight='bold', va='bottom', fontsize=9)
-    # plot the ai generated trendline
-    plt.plot(plot_data['dates'], plot_data['trend'], label="AI Trend", color="red", linestyle="--")
+             verticalalignment='top', fontweight='bold', color='#1f77b4')
+    
+    # add analyst target and label
+    if analyst_target:
+        plt.plot(plot_data['dates'][-1], analyst_target, 'o', color='orange', markersize=8)
+        plt.text(plot_data['dates'][-1], analyst_target, f' Analyst: ${analyst_target:.2f}', color='orange', fontweight='bold')
+
+    # plot the prediction
+    plt.plot(plot_data['dates'][-1], plot_data['target_price'], 'o', color='green', markersize=8)
+    plt.text(plot_data['dates'][-1], plot_data['target_price'], f' AI Prediction: ${plot_data['target_price']:.2f}', color='green', fontweight='bold')
+
+    # plot the current price
+    plt.plot(plot_data['dates'][-1], plot_data['current_price'], 'o', color='blue', markersize=8)
+    plt.text(plot_data['dates'][-1], plot_data['current_price'], f' Current Price: ${plot_data['current_price']:.2f}', color='blue', fontweight='bold')
+
     # fill the volatility safety zone
     plt.fill_between(plot_data['dates'], plot_data['lower_band'], plot_data['upper_band'], color='gray', alpha=0.2)
-    # draw a horizontal line at the ai target price
-    plt.axhline(y=plot_data['target_price'], color='green', linestyle=':', alpha=0.7)
 
     # add legend text for visual clarity
-    info_text = "● Blue: Stock Price\n● Gray: Safety Zone\n● Green: AI Target\n● Red: Trendline"
+    info_text = "● Blue: Stock Price\n● Gray: Safety Zone\n● Green: AI Prediction for Next Close\n● Red: Stock Trendline\n● Orange: Analyst Target (12 months)"
     plt.text(0.02, 0.95, info_text, transform=plt.gca().transAxes, verticalalignment='top', fontsize=8, bbox=dict(facecolor='white', alpha=0.8))
 
     # finish and display the chart
