@@ -84,16 +84,6 @@ def show_plot(symbol, plot_data):
     
     # plot the actual historical price
     plt.plot(plot_data['dates'], plot_data['actual'], label="Price", color="#1f77b4", alpha=0.8)
-
-    # label the exact current price at the last data point
-    #current_price = plot_data['actual'][-1]
-    #plt.text(plot_data['dates'][-1], current_price, f'  ${current_price:.2f}', 
-            # verticalalignment='top', fontweight='bold', color='#1f77b4')
-    
-    # label the exact AI target price 
-    prediction = plot_data['target_price']
-    plt.text(plot_data['dates'][-1], prediction, f'  ${prediction:.2f}', 
-             verticalalignment='top', fontweight='bold', color='#1f77b4')
     
     # add analyst target and label
     if analyst_target:
