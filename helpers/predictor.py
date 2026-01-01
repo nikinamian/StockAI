@@ -15,6 +15,9 @@ def predict_next_close(symbol):
     # fetch analyst target
     ticker = yf.Ticker(symbol)
 
+    # get standard average analyst target from Yahoo Finance
+    analyst_target = ticker.info.get('targetMeanPrice', None)
+
     # prepare day count for linear regression input
     data['Day'] = np.arange(len(data))
     X = data[['Day']].values
@@ -61,7 +64,8 @@ def predict_next_close(symbol):
                 'trend': y_trend,
                 'upper_band': y_trend + std_dev, 
                 'lower_band': y_trend - std_dev, 
-                'target_price': prediction
+                'target_price': prediction,
+                'analyst_target' : analyst_target
             }
         }
 
@@ -70,6 +74,9 @@ def predict_next_close(symbol):
 def show_plot(symbol, plot_data):
     # setup the chart window size
     plt.figure(figsize=(8, 5))
+
+    # get analyst target from plot data dictionary
+    analyst_target = plot_data.get('analyst_target')
     
     # plot the actual historical price
     plt.plot(plot_data['dates'], plot_data['actual'], label="Price", color="#1f77b4", alpha=0.8)
