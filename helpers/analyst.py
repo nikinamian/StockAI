@@ -1,41 +1,21 @@
 import streamlit as st
 import requests
+import yfinance as yf
 
 def get_analyst_data(symbol):
-    # use secret keys from streamlit settings
-    av_key = st.secrets["ALPHA_VANTAGE_KEY"]
+    # use secret keys for finnhub
     fh_key = st.secrets["FINNHUB_API_KEY"]
     
-    # fetch company info from alpha vantage overview
-    av_url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={av_key}"
-    # fetch wall street recommendation ratings from finnhub
+    # fetch wall street recommendation ratings from finnhub (reliable)
     fh_url = f"https://finnhub.io/api/v1/stock/recommendation?symbol={symbol}&token={fh_key}"
     
     try:
-        # pull the full dictionary of company information
-        av_r = requests.get(av_url)
-        info = av_r.json()
-        
-        # extract the average price target from wall street analysts
-        # check multiple possible keys because api names can vary
-        target_val = info.get('AnalystTargetPrice') or info.get('targetPrice')
-        
-        # convert to float safely and handle 'none' or zero strings
-        if target_val and str(target_val).lower() not in ['none', '0', '']:
-            target = float(target_val)
-        else:
-            target = 0.0
-            
-        current = 0 # predictor.py handles the actual current price
-        
-        # pull the recommendation tag from finnhub
+        # 1. get the recommendation tag from finnhub
         fh_r = requests.get(fh_url)
         fh_data = fh_r.json()
         
-        # clean up the recommendation tag and format it for display
         if isinstance(fh_data, list) and len(fh_data) > 0:
             latest = fh_data[0]
-            # determine majority rating to match your previous format
             buy_score = latest.get('buy', 0)
             strong_buy = latest.get('strongBuy', 0)
             sell_score = latest.get('sell', 0)
@@ -55,9 +35,24 @@ def get_analyst_data(symbol):
         else:
             rec = "Neutral"
 
-    except Exception:
-        # if apis fail, return defaults so main.py doesn't crash
-        current, target, rec, info = 0.0, 0.0, "Neutral", {}
+        # 2. get ONLY the analyst target from yahoo finance
+        # we create a session to help bypass the cloud rate limit
+        ticker = yf.Ticker(symbol)
+        
+        # we only pull 'info' if we absolutely have to
+        # yahoo finance sometimes hides the target in different places
+        target = ticker.info.get('targetMeanPrice') or ticker.info.get('targetMedianPrice') or 0.0
+        
+        # if it's still zero, we try one last check
+        if not target:
+            target = 0.0
 
-    # return everything including the raw dictionary for further processing
-    return current, target, rec, info
+    except Exception:
+        # if anything fails, return defaults so main.py doesn't crash
+        target, rec, info = 0.0, "Neutral", {}
+
+    # current price is handled by your predictor file
+    current = 0 
+    
+    # return everything for further processing
+    return current, target, rec, {}
