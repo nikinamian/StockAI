@@ -1,25 +1,44 @@
-import yfinance as yf
+import streamlit as st
+import requests
 
 def get_analyst_data(symbol):
-    # initialize the ticker object to access market data
-    ticker = yf.Ticker(symbol)
-    # pull the full dictionary of company information
-    info = ticker.info
+    # use secret keys from streamlit settings
+    av_key = st.secrets["ALPHA_VANTAGE_KEY"]
+    fh_key = st.secrets["FINNHUB_API_KEY"]
     
-    # try to get the current price from the info dictionary
-    current = info.get('currentPrice')
+    # fetch current price and analyst target from alpha vantage
+    av_url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={av_key}"
+    # fetch wall street recommendation ratings from finnhub
+    fh_url = f"https://finnhub.io/api/v1/stock/recommendation?symbol={symbol}&token={fh_key}"
     
-    # if info price is missing check recent trading history
-    if not current:
-        # download the latest single day of data
-        hist = ticker.history(period="1d")
-        # use the last closing price if history is found
-        current = hist['Close'].iloc[-1] if not hist.empty else 0
+    try:
+        # pull the full dictionary of company information
+        av_r = requests.get(av_url)
+        info = av_r.json()
         
-    # extract the average price target from wall street analysts
-    target = info.get('targetMeanPrice', 0)
-    # clean up the recommendation tag and format it for display
-    rec = info.get('recommendationKey', 'Neutral').replace('_', ' ').title()
-    
+        # extract the average price target from wall street analysts
+        target = float(info.get('AnalystTargetPrice', 0))
+        current = 0 # predictor.py handles the actual current price display
+        
+        # pull the recommendation tag from finnhub
+        fh_r = requests.get(fh_url)
+        fh_data = fh_r.json()
+        
+        # clean up the recommendation tag and format it for display
+        if fh_data and len(fh_data) > 0:
+            latest = fh_data[0]
+            # determine majority rating to match your previous format
+            if latest['strongBuy'] > latest['buy']: rec = "Strong Buy"
+            elif latest['buy'] > latest['hold']: rec = "Buy"
+            elif latest['strongSell'] > latest['sell']: rec = "Strong Sell"
+            elif latest['sell'] > latest['hold']: rec = "Sell"
+            else: rec = "Hold"
+        else:
+            rec = "Neutral"
+
+    except Exception:
+        # if apis fail, return defaults so main.py doesn't crash
+        current, target, rec, info = 0, 0, "Neutral", {}
+
     # return everything including the raw dictionary for further processing
     return current, target, rec, info

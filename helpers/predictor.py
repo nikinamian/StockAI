@@ -1,5 +1,5 @@
 import streamlit as st 
-import yfinance as yf
+import requests # used to call alpha vantage api
 import pandas as pd
 import numpy as np
 import matplotlib
@@ -16,22 +16,40 @@ _lock = RLock()
 @st.cache_data(ttl=600) 
 
 def predict_next_close(symbol):
-    # download one year of daily price data
-    data = yf.download(symbol, period="1y", interval="1d", auto_adjust=True)
-    if data.empty:
-        return None
+    # fetch alpha vantage api key from streamlit secrets
+    api_key = st.secrets["ALPHA_VANTAGE_KEY"]
     
-    # fetch analyst target
-    ticker = yf.Ticker(symbol)
-
-    # wrap in a try-except so the whole app doesn't crash if Yahoo blocks you
+    # download one year of daily price data using alpha vantage
+    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={api_key}&outputsize=compact'
+    
     try:
-        analyst_target = ticker.info.get('targetMeanPrice', None)
+        r = requests.get(url)
+        json_data = r.json()
+        
+        # verify if valid data was returned
+        if "Time Series (Daily)" not in json_data:
+            return None
+            
+        # convert json to the same dataframe format used before
+        data = pd.DataFrame.from_dict(json_data["Time Series (Daily)"], orient='index')
+        data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+        data.index = pd.to_datetime(data.index)
+        # sort oldest to newest to match previous behavior
+        data = data.sort_index().astype(float)
+    except Exception:
+        return None
+
+    # fetch analyst target from overview endpoint
+    overview_url = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={api_key}'
+    
+    try:
+        # wrap in try-except so the whole app doesn't crash if blocked
+        overview_r = requests.get(overview_url)
+        overview_data = overview_r.json()
+        analyst_target = float(overview_data.get('AnalystTargetPrice', 0))
+        if analyst_target == 0: analyst_target = None
     except Exception:
         analyst_target = None # default to None if blocked
-
-    # get standard average analyst target from Yahoo Finance
-    analyst_target = ticker.info.get('targetMeanPrice', None)
 
     # prepare day count for linear regression input
     data['Day'] = np.arange(len(data))
