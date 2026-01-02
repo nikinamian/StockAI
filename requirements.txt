@@ -1,7 +1,11 @@
 streamlit
 pandas
+numpy
 matplotlib
-yfinance>=0.2.54
 scikit-learn
 python-dotenv
 requests
+yfinance>=0.2.64
+curl_cffi
+joblib    
+plotly       
