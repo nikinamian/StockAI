@@ -16,16 +16,15 @@ def run_analysis():
 
     # fetch data button
     if st.button("Run Analysis"):
-            # if user enters nothing
-        # prompt them to enter a valid stock symbol 
+        # if user enters nothing prompt them to enter a valid stock symbol 
         if not symbol: 
             st.warning("❌ Please enter a valid symbol.")
             return
-        with st.spinner(f"analyzing {symbol}..."): #
+            
+        with st.spinner(f"analyzing {symbol}..."): 
             # fetch data
             ai_results = predict_next_close(symbol)
-            # if a stock that doesn't exist was entered
-            # prompt user again
+            # if a stock that doesn't exist was entered prompt user again
             if ai_results is None:
                 st.error(f"❌ Could not find data for {symbol}. Please try again.")
                 return
@@ -42,28 +41,29 @@ def run_analysis():
             # print all information to the user using metrics
             st.header(f"--- {symbol} ANALYSIS ---")
             
-            col1, col2, col3, col4 = st.columns(4)
+            # Updated to 5 columns to fit the Analyst Rating
+            col1, col2, col3, col4, col5 = st.columns(5)
             col1.metric("Current Price", f"${ai_results['current_price']:.2f}")
             col2.metric("Market Sentiment", f"{sentiment:+.2f}")
-            col3.metric("Math Prediction for Next Close", f"${ai_results['prediction']:.2f}", f"{ai_results['pct_change']:+.2f}%")
+            col3.metric("AI Prediction", f"${ai_results['prediction']:.2f}", f"{ai_results['pct_change']:+.2f}%")
             col4.metric("Analyst Target", f"${analyst_results['target']:.2f}", f"{analyst_results['upside']:+.2f}% upside")
+            # NEW: Display the rating directly
+            col5.metric("Analyst Rating", analyst_rec)
 
             # verdict logic
-            # initialize score
             score = 0
-            # add to score is there is a positive mood on the stock 
             if sentiment > 0.1: score += 1
-            # add to score if the percent change is positive (indicates increase)
             if ai_results['pct_change'] > 0: score += 1
             
             # add or subtract from score based on analyst ratings 
-            if "Strong Buy" in analyst_results['rec']: 
+            # we use analyst_rec here to be consistent with the metric above
+            if "Strong Buy" in analyst_rec: 
                 score += 2
-            elif "Buy" in analyst_results['rec']: 
+            elif "Buy" in analyst_rec: 
                 score += 1
-            elif "Strong Sell" in analyst_results['rec']: 
+            elif "Strong Sell" in analyst_rec: 
                 score -= 2
-            elif "Sell" in analyst_results['rec']: 
+            elif "Sell" in analyst_rec: 
                 score -= 1
 
             # decide verdict based on score 
