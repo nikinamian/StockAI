@@ -15,7 +15,7 @@ def run_analysis():
     symbol = st.text_input("Enter stock symbol (ex. GOOG):").upper().strip()
 
     # fetch data button
-    if st.button("run analysis"):
+    if st.button("Run Analysis"):
             # if user enters nothing
         # prompt them to enter a valid stock symbol 
         if not symbol: 
