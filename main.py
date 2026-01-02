@@ -45,7 +45,7 @@ def run_analysis():
             col1, col2, col3, col4 = st.columns(4)
             col1.metric("Current Price", f"${ai_results['current_price']:.2f}")
             col2.metric("Market Sentiment", f"{sentiment:+.2f}")
-            col3.metric("Math Prediction", f"${ai_results['prediction']:.2f}", f"{ai_results['pct_change']:+.2f}%")
+            col3.metric("Math Prediction for Next Close", f"${ai_results['prediction']:.2f}", f"{ai_results['pct_change']:+.2f}%")
             col4.metric("Analyst Target", f"${analyst_results['target']:.2f}", f"{analyst_results['upside']:+.2f}% upside")
 
             # verdict logic
