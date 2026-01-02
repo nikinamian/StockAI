@@ -22,6 +22,12 @@ def predict_next_close(symbol):
     # fetch analyst target
     ticker = yf.Ticker(symbol)
 
+    # wrap in a try-except so the whole app doesn't crash if Yahoo blocks you
+    try:
+        analyst_target = ticker.info.get('targetMeanPrice', None)
+    except Exception:
+        analyst_target = None # default to None if blocked
+        
     # get standard average analyst target from Yahoo Finance
     analyst_target = ticker.info.get('targetMeanPrice', None)
 
