@@ -1,3 +1,4 @@
+import streamlit as st 
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -108,4 +109,5 @@ def show_plot(symbol, plot_data):
     # finish and display the chart
     plt.title(f"AI Analysis: {symbol}")
     plt.tight_layout()
-    plt.show()
+    # create window to show users the chart 
+    st.pyplot(plt.gcf()) 
