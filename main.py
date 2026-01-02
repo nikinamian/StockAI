@@ -13,15 +13,14 @@ def run_analysis():
     
     # enter stock symbol (ex. GOOG)
     symbol = st.text_input("Enter stock symbol (ex. GOOG):").upper().strip()
-    
-    # if user enters nothing
-    # prompt them to enter a valid stock symbol 
-    if not symbol: 
-        st.warning("❌ Please enter a valid symbol.")
-        return
 
     # fetch data button
     if st.button("run analysis"):
+            # if user enters nothing
+        # prompt them to enter a valid stock symbol 
+        if not symbol: 
+            st.warning("❌ Please enter a valid symbol.")
+            return
         with st.spinner(f"analyzing {symbol}..."): #
             # fetch data
             ai_results = predict_next_close(symbol)
