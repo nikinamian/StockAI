@@ -9,7 +9,7 @@ from helpers.news_quote import get_supporting_quote
 st.set_page_config(page_title="StockAI", layout="wide")
 
 def run_analysis():
-    st.title("      STOCK AI RESEARCH TOOL")
+    st.title("      TICKER TALK")
     
     # enter stock symbol (ex. GOOG)
     symbol = st.text_input("Enter stock symbol (ex. GOOG):").upper().strip()

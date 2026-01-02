@@ -12,37 +12,36 @@ def get_analyst_data(symbol):
     fh_url = f"https://finnhub.io/api/v1/stock/recommendation?symbol={symbol}&token={fh_key}"
     
     try:
-        # 1. get company info and target price
+        # pull the full dictionary of company information
         av_r = requests.get(av_url)
         info = av_r.json()
         
-        # Alpha Vantage uses 'AnalystTargetPrice'
-        target_val = info.get('AnalystTargetPrice')
+        # extract the average price target from wall street analysts
+        # check multiple possible keys because api names can vary
+        target_val = info.get('AnalystTargetPrice') or info.get('targetPrice')
         
-        # convert string to float safely; if missing, use 0
-        if target_val and target_val != 'None':
+        # convert to float safely and handle 'none' or zero strings
+        if target_val and str(target_val).lower() not in ['none', '0', '']:
             target = float(target_val)
         else:
             target = 0.0
             
-        current = 0 # predictor.py handles the actual current price display
+        current = 0 # predictor.py handles the actual current price
         
-        # 2. get the recommendation tag from finnhub
+        # pull the recommendation tag from finnhub
         fh_r = requests.get(fh_url)
         fh_data = fh_r.json()
         
-        # determine majority rating to match your previous format
+        # clean up the recommendation tag and format it for display
         if isinstance(fh_data, list) and len(fh_data) > 0:
-            latest = fh_data[0] # Get the most recent month of analyst data
-            
-            # Scoring logic to find the strongest recommendation
+            latest = fh_data[0]
+            # determine majority rating to match your previous format
             buy_score = latest.get('buy', 0)
             strong_buy = latest.get('strongBuy', 0)
             sell_score = latest.get('sell', 0)
             strong_sell = latest.get('strongSell', 0)
             hold_score = latest.get('hold', 0)
 
-            # Assign the string that main.py is looking for
             if strong_buy > buy_score and strong_buy > hold_score:
                 rec = "Strong Buy"
             elif buy_score >= hold_score and buy_score > sell_score:
