@@ -1,6 +1,7 @@
 # SECRETS (do NOT remove)
 # this ensures my private API keys never go to GitHub
 .env
+.streamlit/secrets.toml
 
 # PYTHON JUNK 
 # these are temporary files Python creates when it runs; they don't belong in a repo

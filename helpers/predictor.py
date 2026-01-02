@@ -12,6 +12,8 @@ from threading import RLock
 # prevent website from crashing when many people visit
 _lock = RLock()
 
+# remember data for 10 minutes to prevent over pinging
+@st.cache_data(ttl=600) 
 
 def predict_next_close(symbol):
     # download one year of daily price data
@@ -27,7 +29,7 @@ def predict_next_close(symbol):
         analyst_target = ticker.info.get('targetMeanPrice', None)
     except Exception:
         analyst_target = None # default to None if blocked
-        
+
     # get standard average analyst target from Yahoo Finance
     analyst_target = ticker.info.get('targetMeanPrice', None)
 
