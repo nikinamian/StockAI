@@ -3,9 +3,15 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import matplotlib
-matplotlib.use('MacOSX') 
+# change backend to Agg so it works on the cloud server
+matplotlib.use('Agg') 
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
+from threading import RLock
+
+# prevent website from crashing when many people visit
+_lock = RLock()
+
 
 def predict_next_close(symbol):
     # download one year of daily price data
@@ -74,40 +80,44 @@ def predict_next_close(symbol):
     return results 
 
 def show_plot(symbol, plot_data):
-    # setup the chart window size
-    plt.figure(figsize=(8, 5))
+    # use a lock to handle multiple users safely
+    with _lock:
+        # clear the figure so plots don't overlap
+        plt.clf()
+        # setup the chart window size
+        plt.figure(figsize=(8, 5))
 
-    # get analyst target from plot data dictionary
-    analyst_target = plot_data.get('analyst_target')
+        # get analyst target from plot data dictionary
+        analyst_target = plot_data.get('analyst_target')
 
-    # plot the ai generated trendline
-    plt.plot(plot_data['dates'], plot_data['trend'], label="AI Trend", color="red", linestyle="--")
-    
-    # plot the actual historical price
-    plt.plot(plot_data['dates'], plot_data['actual'], label="Price", color="#1f77b4", alpha=0.8)
-    
-    # add analyst target and label
-    if analyst_target:
-        plt.plot(plot_data['dates'][-1], analyst_target, 'o', color='orange', markersize=8)
-        plt.text(plot_data['dates'][-1], analyst_target, f' Analyst: ${analyst_target:.2f}', color='orange', fontweight='bold')
+        # plot the ai generated trendline
+        plt.plot(plot_data['dates'], plot_data['trend'], label="AI Trend", color="red", linestyle="--")
+        
+        # plot the actual historical price
+        plt.plot(plot_data['dates'], plot_data['actual'], label="Price", color="#1f77b4", alpha=0.8)
+        
+        # add analyst target and label
+        if analyst_target:
+            plt.plot(plot_data['dates'][-1], analyst_target, 'o', color='orange', markersize=8)
+            plt.text(plot_data['dates'][-1], analyst_target, f' Analyst: ${analyst_target:.2f}', color='orange', fontweight='bold')
 
-    # plot the prediction
-    plt.plot(plot_data['dates'][-1], plot_data['target_price'], 'o', color='green', markersize=8)
-    plt.text(plot_data['dates'][-1], plot_data['target_price'], f' AI Prediction: ${plot_data['target_price']:.2f}', color='green', fontweight='bold')
+        # plot the prediction
+        plt.plot(plot_data['dates'][-1], plot_data['target_price'], 'o', color='green', markersize=8)
+        plt.text(plot_data['dates'][-1], plot_data['target_price'], f' AI Prediction: ${plot_data['target_price']:.2f}', color='green', fontweight='bold')
 
-    # plot the current price
-    plt.plot(plot_data['dates'][-1], plot_data['current_price'], 'o', color='blue', markersize=8)
-    plt.text(plot_data['dates'][-1], plot_data['current_price'], f' Current Price: ${plot_data['current_price']:.2f}', color='blue', fontweight='bold')
+        # plot the current price
+        plt.plot(plot_data['dates'][-1], plot_data['current_price'], 'o', color='blue', markersize=8)
+        plt.text(plot_data['dates'][-1], plot_data['current_price'], f' Current Price: ${plot_data['current_price']:.2f}', color='blue', fontweight='bold')
 
-    # fill the volatility safety zone
-    plt.fill_between(plot_data['dates'], plot_data['lower_band'], plot_data['upper_band'], color='gray', alpha=0.2)
+        # fill the volatility safety zone
+        plt.fill_between(plot_data['dates'], plot_data['lower_band'], plot_data['upper_band'], color='gray', alpha=0.2)
 
-    # add legend text for visual clarity
-    info_text = "● Blue: Stock Price\n● Gray: Safety Zone\n● Green: AI Prediction for Next Close\n● Red: Stock Trendline\n● Orange: Analyst Target (12 months)"
-    plt.text(0.02, 0.95, info_text, transform=plt.gca().transAxes, verticalalignment='top', fontsize=8, bbox=dict(facecolor='white', alpha=0.8))
+        # add legend text for visual clarity
+        info_text = "● Blue: Stock Price\n● Gray: Safety Zone\n● Green: AI Prediction for Next Close\n● Red: Stock Trendline\n● Orange: Analyst Target (12 months)"
+        plt.text(0.02, 0.95, info_text, transform=plt.gca().transAxes, verticalalignment='top', fontsize=8, bbox=dict(facecolor='white', alpha=0.8))
 
-    # finish and display the chart
-    plt.title(f"AI Analysis: {symbol}")
-    plt.tight_layout()
-    # create window to show users the chart 
-    st.pyplot(plt.gcf()) 
+        # finish and display the chart
+        plt.title(f"AI Analysis: {symbol}")
+        plt.tight_layout()
+        # create window to show users the chart 
+        st.pyplot(plt.gcf())
