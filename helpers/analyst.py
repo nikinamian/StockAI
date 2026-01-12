@@ -3,32 +3,32 @@ import requests
 import yfinance as yf
 
 def get_analyst_data(symbol):
-    # pull the 12-month analyst target from alpha vantage (reliable official api)
+    # use our secrets for the api keys
     av_key = st.secrets["ALPHA_VANTAGE_KEY"]
-    av_url = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={av_key}'
+    fh_key = st.secrets["FINNHUB_API_KEY"]
     
     target = 0.0
+    rec = "Neutral"
+
+    # 1. try to get the target from alpha vantage first
     try:
+        av_url = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={av_key}'
         av_r = requests.get(av_url)
         av_data = av_r.json()
-        # pull the target price from the overview dictionary
+        # pull the specific target price field
         target = float(av_data.get('AnalystTargetPrice', 0))
     except Exception:
-        # if alpha vantage fails, target stays 0.0
-        pass
+        target = 0.0
 
-    # get the recommendation ratings from finnhub (standard keys)
-    fh_key = st.secrets["FINNHUB_API_KEY"]
-    fh_url = f"https://finnhub.io/api/v1/stock/recommendation?symbol={symbol}&token={fh_key}"
-    
-    rec = "Neutral"
+    # 2. get the recommendation string from finnhub
     try:
+        fh_url = f"https://finnhub.io/api/v1/stock/recommendation?symbol={symbol}&token={fh_key}"
         fh_r = requests.get(fh_url)
         fh_data = fh_r.json()
         
         if isinstance(fh_data, list) and len(fh_data) > 0:
             latest = fh_data[0]
-            # determine majority rating for the scoring system in main.py
+            # check the buy/sell counts to pick the label
             b, sb, s, ss, h = latest.get('buy', 0), latest.get('strongBuy', 0), latest.get('sell', 0), latest.get('strongSell', 0), latest.get('hold', 0)
             
             if sb > b and sb > h: rec = "Strong Buy"
@@ -37,25 +37,21 @@ def get_analyst_data(symbol):
             elif s > h: rec = "Sell"
             else: rec = "Hold"
     except Exception:
-        # fallback to neutral if finnhub is down
-        pass
+        rec = "Neutral"
 
-    # get general company info from yahoo using a session bypass
-    session = requests.Session()
-    session.headers.update({'User-Agent': 'Mozilla/5.0'})
+    # 3. CRITICAL FALLBACK: if target is still 0, try yahoo one last time
+    info = {}
+    if target == 0:
+        try:
+            # setup a session to look like a real browser
+            session = requests.Session()
+            session.headers.update({'User-Agent': 'Mozilla/5.0'})
+            ticker = yf.Ticker(symbol, session=session)
+            info = ticker.info
+            # grab the target from the info dict if it exists
+            target = info.get('targetMeanPrice') or info.get('targetMedianPrice') or 0.0
+        except Exception:
+            info = {}
     
-    try:
-        ticker = yf.Ticker(symbol, session=session)
-        info = ticker.info
-        
-        # only use yahoo for the target if alpha vantage returned zero
-        if not target:
-            target = info.get('targetMeanPrice') or 0.0
-    except Exception:
-        info = {}
-
-    # current price is handled by the predictor file 
-    current = 0 
-    
-    # return the cleaned data for the ui to display
-    return current, target, rec, info
+    # current price is already in your predictor results
+    return 0, target, rec, info
