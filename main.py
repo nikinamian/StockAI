@@ -9,10 +9,20 @@ from helpers.news_quote import get_supporting_quote
 st.set_page_config(page_title="TICKER TALK", layout="wide")
 
 def run_analysis():
+    # 1. auto-reset logic: clear the search box if this is a fresh visit from a link
+    if 'first_run' not in st.session_state:
+        st.session_state.first_run = True
+        # this wipes the last typed symbol so the user starts fresh
+        if 'ticker_input' in st.session_state:
+            st.session_state.ticker_input = ""
+
     st.title("      TICKER TALK")
     
-    # enter stock symbol (ex. GOOG)
-    symbol = st.text_input("Enter stock symbol (ex. GOOG):").upper().strip()
+    # 2. we give the input a key so we can control its reset behavior
+    symbol = st.text_input(
+        "Enter stock symbol (ex. GOOG):", 
+        key="ticker_input"
+    ).upper().strip()
 
     # fetch data button
     if st.button("Run Analysis"):
