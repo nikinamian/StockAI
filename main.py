@@ -10,6 +10,7 @@ st.set_page_config(page_title="TICKER TALK", layout="wide")
 def run_analysis():
     # sidebar controls for recruiters to reset the app
     with st.sidebar:
+        st.info("Note: This app uses free-tier APIs. If 'N/A' appears, the daily limit may have been reached. Big stocks like AAPL or TSLA are most reliable for testing.")
         st.header("App Controls")
         if st.button("Reset App / Clear Cache"):
             st.cache_data.clear()
