@@ -2,25 +2,15 @@ import streamlit as st
 import requests
 import yfinance as yf
 
+# Cache results for 10 minutes to save API limits
+@st.cache_data(ttl=600)
 def get_analyst_data(symbol):
     # use our secrets for the api keys
-    av_key = st.secrets["ALPHA_VANTAGE_KEY"]
     fh_key = st.secrets["FINNHUB_API_KEY"]
     
-    target = 0.0
     rec = "Neutral"
 
-    # 1. try to get the target from alpha vantage first
-    try:
-        av_url = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={av_key}'
-        av_r = requests.get(av_url)
-        av_data = av_r.json()
-        # pull the specific target price field
-        target = float(av_data.get('AnalystTargetPrice', 0))
-    except Exception:
-        target = 0.0
-
-    # 2. get the recommendation string from finnhub
+    # 1. Get the recommendation string from Finnhub
     try:
         fh_url = f"https://finnhub.io/api/v1/stock/recommendation?symbol={symbol}&token={fh_key}"
         fh_r = requests.get(fh_url)
@@ -39,19 +29,19 @@ def get_analyst_data(symbol):
     except Exception:
         rec = "Neutral"
 
-    # 3. CRITICAL FALLBACK: if target is still 0, try yahoo one last time
+    # 2. Get target price and raw info from Yahoo Finance
+    # This is more sustainable than hitting Alpha Vantage twice
     info = {}
-    if target == 0:
-        try:
-            # setup a session to look like a real browser
-            session = requests.Session()
-            session.headers.update({'User-Agent': 'Mozilla/5.0'})
-            ticker = yf.Ticker(symbol, session=session)
-            info = ticker.info
-            # grab the target from the info dict if it exists
-            target = info.get('targetMeanPrice') or info.get('targetMedianPrice') or 0.0
-        except Exception:
-            info = {}
+    target = 0.0
+    try:
+        # setup a session to look like a real browser
+        session = requests.Session()
+        session.headers.update({'User-Agent': 'Mozilla/5.0'})
+        ticker = yf.Ticker(symbol, session=session)
+        info = ticker.info
+        # grab the target from the info dict
+        target = info.get('targetMeanPrice') or info.get('targetMedianPrice') or 0.0
+    except Exception:
+        info = {}
     
-    # current price is already in your predictor results
-    return 0, target, rec, info
+    return target, rec, info
