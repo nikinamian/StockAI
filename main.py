@@ -69,7 +69,7 @@ def run_analysis():
             
             # FIXED: Handle missing data gracefully for recruiter applications
             target_display = f"${target:.2f}" if target > 0 else "N/A"
-            upside_display = f"{upside:+.2f}% upside" if target > 0 else "Data limited"
+            upside_display = f"{upside:+.2f}% upside" if target > 0 else "Data limited (API limit hit)"
             col4.metric("Analyst Target", target_display, upside_display)
             
             # NEW: This prints the "Buy/Strong Buy" rating on screen
