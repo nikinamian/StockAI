@@ -99,7 +99,7 @@ def show_plot(symbol, plot_data, analyst_target=0.0):
         plt.fill_between(plot_data['dates'], plot_data['lower_band'], plot_data['upper_band'], color='gray', alpha=0.2, label="Safety Zone")
         
         # put the key in the top left so it's easy to read
-        plt.legend(loc='upper left')
+        plt.legend(loc='lower left', prop={'size': 8})
 
         # finish and display the chart
         plt.title(f"AI Analysis: {symbol}")
