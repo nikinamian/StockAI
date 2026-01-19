@@ -90,9 +90,9 @@ def show_plot(symbol, plot_data, analyst_target=0.0):
         plt.plot(plot_data['dates'], plot_data['actual'], label="Price", color="#1f77b4", alpha=0.8)
         
         # add analyst target and label if it exists
-        if analyst_target > 0:
-            plt.plot(plot_data['dates'][-1], analyst_target, 'o', color='orange', markersize=8)
-            plt.text(plot_data['dates'][-1], analyst_target, f' Analyst: ${analyst_target:.2f}', color='orange', fontweight='bold')
+        #if analyst_target > 0:
+            #plt.plot(plot_data['dates'][-1], analyst_target, 'o', color='orange', markersize=8)
+            #plt.text(plot_data['dates'][-1], analyst_target, f' Analyst: ${analyst_target:.2f}', color='orange', fontweight='bold')
 
         # plot the ai prediction
         plt.plot(plot_data['dates'][-1], plot_data['target_price'], 'o', color='green', markersize=8)

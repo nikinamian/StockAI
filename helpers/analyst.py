@@ -24,8 +24,7 @@ def get_analyst_data(symbol):
             rec_data = res_rec.json()
             if rec_data:
                 latest = rec_data[0]
-                # logic to pick recommendation...
-                # (your existing sb/b/h/s/ss logic here)
+                # logic to pick recommendation
                 info['recommendationKey'] = rec.lower().replace(" ", "_")
     except:
         pass
