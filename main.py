@@ -42,7 +42,12 @@ def run_analysis():
             sentiment = get_stock_sentiment(symbol)
             target, analyst_rec, raw_info = get_analyst_data(symbol)
             
-            process_analyst_data(symbol, raw_info)
+            if raw_info:
+                process_results = process_analyst_data(symbol, raw_info)
+                # If the processor found a better target, use it; otherwise stick to 'target'
+                final_target = process_results.get('target', target)
+            else:
+                final_target = target
             
             current = ai_results['current_price']
             upside = ((target - current) / current) * 100 if target > 0 else 0
