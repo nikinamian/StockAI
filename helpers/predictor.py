@@ -84,27 +84,23 @@ def show_plot(symbol, plot_data, analyst_target=0.0):
         plt.figure(figsize=(8, 5))
 
         # plot the ai generated trendline
-        plt.plot(plot_data['dates'], plot_data['trend'], label="AI Trend", color="red", linestyle="--")
+        plt.plot(plot_data['dates'], plot_data['trend'], label="Stock Trendline", color="red", linestyle="--")
         
         # plot the actual historical price
-        plt.plot(plot_data['dates'], plot_data['actual'], label="Price", color="#1f77b4", alpha=0.8)
+        plt.plot(plot_data['dates'], plot_data['actual'], label="Stock Price", color="#1f77b4", alpha=0.8)
         
-        # add analyst target and label if it exists
-        #if analyst_target > 0:
-            #plt.plot(plot_data['dates'][-1], analyst_target, 'o', color='orange', markersize=8)
-            #plt.text(plot_data['dates'][-1], analyst_target, f' Analyst: ${analyst_target:.2f}', color='orange', fontweight='bold')
-
         # plot the ai prediction
-        plt.plot(plot_data['dates'][-1], plot_data['target_price'], 'o', color='green', markersize=8)
-        plt.text(plot_data['dates'][-1], plot_data['target_price'], f' AI Prediction: ${plot_data['target_price']:.2f}', color='green', fontweight='bold')
+        plt.plot(plot_data['dates'][-1], plot_data['target_price'], 'o', color='green', markersize=8, label="AI Prediction for Next Close")
 
         # plot the current price
-        plt.plot(plot_data['dates'][-1], plot_data['current_price'], 'o', color='blue', markersize=8)
-        plt.text(plot_data['dates'][-1], plot_data['current_price'], f' Current Price: ${plot_data['current_price']:.2f}', color='blue', fontweight='bold')
+        plt.plot(plot_data['dates'][-1], plot_data['current_price'], 'o', color='blue', markersize=8, label="Current Price")
 
         # fill the volatility safety zone
-        plt.fill_between(plot_data['dates'], plot_data['lower_band'], plot_data['upper_band'], color='gray', alpha=0.2)
+        plt.fill_between(plot_data['dates'], plot_data['lower_band'], plot_data['upper_band'], color='gray', alpha=0.2, label="Safety Zone")
         
+        # put the key in the top left so it's easy to read
+        plt.legend(loc='upper left')
+
         # finish and display the chart
         plt.title(f"AI Analysis: {symbol}")
         plt.tight_layout()
