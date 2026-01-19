@@ -17,9 +17,9 @@ def get_analyst_data(symbol):
         res = requests.get(target_url, timeout=5)
         if res.status_code == 200:
             target_val = float(res.json().get('targetMean', 0))
-        target = target_val
-        # process_analyst_data gets the data it needs:
-        info['targetMeanPrice'] = target_val
+            target = target_val
+            # process_analyst_data gets the data it needs:
+            info['targetMeanPrice'] = target_val
         
         # get recommendation
         rec_url = f"https://finnhub.io/api/v1/stock/recommendation?symbol={symbol}&token={fh_key}"
