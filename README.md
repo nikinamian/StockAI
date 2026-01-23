@@ -1,6 +1,6 @@
 Try it out! https://tickertalkai.streamlit.app/ 
 
-<img width="854" height="414" alt="Screenshot 2026-01-18 at 9 44 14 PM" src="https://github.com/user-attachments/assets/951c150f-06ec-46fc-bd90-54b755ec484c" />
+<img width="890" height="425" alt="tickertalk ex1" src="https://github.com/user-attachments/assets/6b0bc706-5310-4c8d-8500-88232ad73061" />
 
 <img width="860" height="582" alt="Screenshot 2026-01-18 at 9 43 56 PM" src="https://github.com/user-attachments/assets/543fdc0a-40a1-4960-be11-11fc8717f792" />
 
