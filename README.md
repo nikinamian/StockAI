@@ -2,7 +2,8 @@ Try it out! https://tickertalkai.streamlit.app/
 
 <img width="1020" height="472" alt="Screen Shot 2026-05-15 at 9 49 43 PM" src="https://github.com/user-attachments/assets/eb83b81a-50a3-4bde-ba29-954d0bcf1e92" />
 <img width="1001" height="284" alt="Screen Shot 2026-05-15 at 9 49 55 PM" src="https://github.com/user-attachments/assets/023b69c4-1fc5-43cc-8cc7-bc1a2f6c41d2" />
-<img width="969" height="403" alt="Screen Shot 2026-05-15 at 10 01 23 PM" src="https://github.com/user-attachments/assets/d36ca4cd-86ef-4700-b592-b3c66c8c4cec" />
+<img width="943" height="344" alt="Screen Shot 2026-05-15 at 10 05 26 PM" src="https://github.com/user-attachments/assets/12ed301b-84be-4718-bfad-abfc9d8ee905" />
+
 
 
 
