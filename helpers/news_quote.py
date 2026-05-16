@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 from datetime import datetime, timedelta
-from urllib.parse import urlparse # NEW: library to parse URLs
+from urllib.parse import urlparse
 
 def get_supporting_quote(symbol, sentiment_score=0.0):
     try:
@@ -39,11 +39,25 @@ def get_supporting_quote(symbol, sentiment_score=0.0):
                 title = best_story.get('headline', "Market update for " + symbol)
                 article_url = best_story.get('url', '#')
                 
-                # NEW: Force the source name to match the actual destination link
+                # NEW: A dictionary to make the source names look professional
+                source_map = {
+                    'fool.com': 'THE MOTLEY FOOL',
+                    'seekingalpha.com': 'SEEKING ALPHA',
+                    'benzinga.com': 'BENZINGA',
+                    'cnbc.com': 'CNBC',
+                    'reuters.com': 'REUTERS',
+                    'bloomberg.com': 'BLOOMBERG',
+                    'marketwatch.com': 'MARKETWATCH',
+                    'wsj.com': 'THE WALL STREET JOURNAL',
+                    'finance.yahoo.com': 'YAHOO FINANCE'
+                }
+                
                 if article_url != '#':
-                    domain = urlparse(article_url).netloc
-                    # Clean up the prefix for a cleaner UI (e.g., 'www.fool.com' -> 'FOOL.COM')
-                    source = domain.replace('www.', '').replace('finance.', '').upper()
+                    # Grab the raw domain (e.g., 'www.fool.com') and strip the 'www.'
+                    domain = urlparse(article_url).netloc.replace('www.', '')
+                    
+                    # Look up the domain in our map. If it's not there, just uppercase the domain.
+                    source = source_map.get(domain, domain.upper())
                 else:
                     source = best_story.get('source', "FINANCIAL NEWS").upper()
                 
