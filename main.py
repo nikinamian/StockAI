@@ -52,7 +52,7 @@ def run_analysis():
             current = ai_results['current_price']
             upside = ((target - current) / current) * 100 if target > 0 else 0
 
-            evidence, source = get_supporting_quote(symbol)
+            evidence, source = get_supporting_quote(symbol, sentiment)
 
             st.header(f"--- {symbol} ANALYSIS ---")
             
