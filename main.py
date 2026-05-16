@@ -1,4 +1,5 @@
 import streamlit as st 
+import yfinance as yf 
 from helpers.predictor import predict_next_close, show_plot
 from helpers.sentiment import get_stock_sentiment
 from helpers.analyst import get_analyst_data
@@ -34,11 +35,13 @@ def run_analysis():
             return
             
         with st.spinner(f"analyzing {symbol}..."): 
+            # 1. AI Prediction Data
             ai_results = predict_next_close(symbol)
             if ai_results is None:
                 st.error(f"❌ Could not find data for {symbol}.")
                 return
 
+            # 2. Sentiment & Analyst Data
             sentiment = get_stock_sentiment(symbol)
             target, analyst_rec, raw_info = get_analyst_data(symbol)
             
@@ -50,20 +53,50 @@ def run_analysis():
                 final_target = target
             
             current = ai_results['current_price']
-            upside = ((target - current) / current) * 100 if target > 0 else 0
-
-            evidence, source, article_url = get_supporting_quote(symbol, sentiment)
             
+            # --- Get live market changes and after-hours data ---
+            try:
+                live_info = yf.Ticker(symbol).info
+                
+                # Update current price to be up-to-the-minute
+                current = live_info.get('currentPrice', live_info.get('regularMarketPrice', current))
+                
+                # Get the day's percentage change safely
+                day_change = live_info.get('regularMarketChangePercent', 0.0)
+                if day_change is None: day_change = 0.0
+                
+                # Look for After Hours data
+                ah_price = live_info.get('postMarketPrice')
+                ah_change = live_info.get('postMarketChangePercent')
+            except Exception:
+                day_change = 0.0
+                ah_price = None
+                ah_change = None
+            # ---------------------------------------------------------
+
+            upside = ((final_target - current) / current) * 100 if final_target > 0 else 0
+            
+            # 3. News Quote Data (Now expects 3 variables!)
+            evidence, source, article_url = get_supporting_quote(symbol, sentiment)
+
+            # --- RENDER DASHBOARD ---
             st.header(f"--- {symbol} ANALYSIS ---")
             
             col1, col2, col3, col4, col5 = st.columns(5)
-            col1.metric("Current Price", f"${current:.2f}")
+            
+            # Use Streamlit's built-in green/red delta indicator
+            col1.metric("Current Price", f"${current:.2f}", f"{day_change:+.2f}% Today")
+            
+            # Add a tiny caption for After Hours if the market is closed
+            if ah_price and ah_change is not None:
+                col1.caption(f"🌙 After Hours: ${ah_price:.2f} ({ah_change:+.2f}%)")
+                
             col2.metric("Market Sentiment", f"{sentiment:+.2f}")
             col3.metric("AI Prediction", f"${ai_results['prediction']:.2f}", f"{ai_results['pct_change']:+.2f}%")
             
             # format analyst data for a clean display
-            target_val = f"${target:.2f}" if target > 0 else "N/A"
-            upside_val = f"{upside:+.2f}% upside" if target > 0 else "Data limited"
+            target_val = f"${final_target:.2f}" if final_target > 0 else "N/A"
+            upside_val = f"{upside:+.2f}% upside" if final_target > 0 else "Data limited"
             col4.metric("Analyst Target", target_val, upside_val)
             
             col5.metric("Analyst Rating", analyst_rec)
@@ -91,14 +124,14 @@ def run_analysis():
             st.subheader(f"OVERALL VERDICT: {final_v}")
             st.write(f"**REASONING:** {note}")
             
-            # Use Markdown to create the clickable link
+            # Display evidence with a clickable hyperlink
             if article_url != '#':
-                st.info(f"📢 NEWS:\n   {evidence} \n\n [Want to read more?]({article_url})")
+                st.info(f"📢 NEWS:\n   {evidence}\n\n[Want to read more?]({article_url})")
             else:
                 st.info(f"📢 NEWS:\n   {evidence}")
 
             st.subheader("Visual Chart")
-            show_plot(symbol, ai_results['plot_data'], analyst_target=target)
+            show_plot(symbol, ai_results['plot_data'], analyst_target=final_target)
 
 if __name__ == "__main__":
     run_analysis()
