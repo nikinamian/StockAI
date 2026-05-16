@@ -98,9 +98,10 @@ def run_analysis():
             col1.metric("Current Price", f"${current:.2f}", delta_str)
             
             # Add a tiny caption for After Hours if the market is closed
+            # Note the backslashes (\) before the $ signs to prevent Streamlit from formatting it as math!
             if ah_price and ah_change is not None and ah_change_dol is not None:
                 ah_sign = "+" if ah_change_dol >= 0 else "-"
-                col1.caption(f"🌙 After Hours: ${ah_price:.2f} ({ah_sign}${abs(ah_change_dol):.2f} | {ah_change:+.2f}%)")
+                col1.caption(f"🌙 After Hours: \${ah_price:.2f} ({ah_sign}\${abs(ah_change_dol):.2f} | {ah_change:+.2f}%)")
                 
             col2.metric("Market Sentiment", f"{sentiment:+.2f}")
             col3.metric("AI Prediction", f"${ai_results['prediction']:.2f}", f"{ai_results['pct_change']:+.2f}%")
@@ -137,9 +138,9 @@ def run_analysis():
             
             # Display evidence with a clickable hyperlink
             if article_url != '#':
-                st.info(f"📢 EVIDENCE FROM {source}:\n   {evidence}\n\n[Want to read more?]({article_url})")
+                st.info(f"📢 NEWS:\n   {evidence}\n\n[Want to read more?]({article_url})")
             else:
-                st.info(f"📢 EVIDENCE FROM {source}:\n   {evidence}")
+                st.info(f"📢 NEWS:\n   {evidence}")
 
             st.subheader("Visual Chart")
             show_plot(symbol, ai_results['plot_data'], analyst_target=final_target)
