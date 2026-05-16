@@ -72,7 +72,7 @@ def show_plot(symbol, plot_data, analyst_target=0.0):
         # clear the figure so plots don't overlap
         plt.clf()
         # setup the chart window size
-        plt.figure(figsize=(5, 3.5))
+        plt.figure(figsize=(10, 3))
 
         # plot the ai generated trendline
         plt.plot(plot_data['dates'], plot_data['trend'], label="Stock Trendline", color="red", linestyle="--")
