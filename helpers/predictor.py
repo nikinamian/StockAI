@@ -15,50 +15,41 @@ _lock = RLock()
 # remember data for 10 minutes to prevent over pinging
 @st.cache_data(ttl=600) 
 def predict_next_close(symbol):
-    # fetch alpha vantage api key from streamlit secrets
-    api_key = st.secrets["ALPHA_VANTAGE_KEY"]
-    
-    # download daily price data using alpha vantage
-    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={api_key}&outputsize=compact'
+    import yfinance as yf
     
     try:
-        r = requests.get(url)
-        json_data = r.json()
+        # 1. Fetch data via yfinance (No API key needed!)
+        ticker = yf.Ticker(symbol)
+        # 60 days is plenty for a short-term trendline
+        data = ticker.history(period="60d")
         
-        # verify if valid data was returned
-        if "Time Series (Daily)" not in json_data:
+        if data.empty:
             return None
             
-        # convert json to the same dataframe format used before
-        data = pd.DataFrame.from_dict(json_data["Time Series (Daily)"], orient='index')
-        data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+        # 2. Format to match your original dataframe structure
+        # yfinance returns 'Close', 'Open', etc. already.
         data.index = pd.to_datetime(data.index)
-        # sort oldest to newest to match previous behavior
         data = data.sort_index().astype(float)
-    except Exception:
+        
+    except Exception as e:
+        print(f"Error fetching {symbol}: {e}")
         return None
 
-    # prepare day count for linear regression input
+    # --- Your Original ML Logic (Keep this exactly as is) ---
     data['Day'] = np.arange(len(data))
     X = data[['Day']].values
     y = data['Close'].values.flatten()
 
-    # initialize and train the linear regression model
     model = LinearRegression()
     model.fit(X, y)
 
-    # project price for the very next trading day
     prediction = model.predict(np.array([[len(data)]])).item()
     current_price = y[-1]
     
-    # calculate the percentage gap between current and predicted price
     pct_change = ((prediction - current_price) / current_price) * 100
-    
-    # calculate the trendline and volatility bands
     y_trend = model.predict(X)
     std_dev = np.std(y - y_trend) 
     
-    # package all findings into a dictionary for main to use
     return {
         "symbol": symbol,
         "current_price": current_price,
