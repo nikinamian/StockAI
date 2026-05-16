@@ -1,33 +1,33 @@
-import yfinance as yf
-
-# CURRENTLY WORKING ON THIS
+import streamlit as st
+import requests
+from datetime import datetime, timedelta
 
 def get_supporting_quote(symbol):
     try:
-        # initialize the ticker object to find news stories
-        ticker = yf.Ticker(symbol)
-        # fetch the most recent news articles for this ticker
-        news = ticker.news
+        # 1. Use the Finnhub key we already know works
+        fh_key = st.secrets["FINNHUB_API_KEY"]
         
-        # handle cases where no recent news is available
-        if not news:
-            return "no recent news found.", "n/a"
-            
-        # grab the very first story from the news list
-        story = news[0]
+        # 2. Get dates for the last 7 days
+        end = datetime.now().strftime("%Y-%m-%d")
+        start = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+
+        # 3. Fetch company news from Finnhub
+        url = f"https://finnhub.io/api/v1/company-news?symbol={symbol}&from={start}&to={end}&token={fh_key}"
+        res = requests.get(url, timeout=5)
         
-        # check multiple fields to find the article title
-        title = story.get('title') or \
-                story.get('headline') or \
-                "market update for " + symbol
+        if res.status_code == 200:
+            news = res.json()
+            if news and len(news) > 0:
+                story = news[0] # Get the most recent story
+                
+                # Finnhub uses 'headline' and 'source' directly
+                title = story.get('headline', "Market update for " + symbol)
+                source = story.get('source', "Financial News")
+                
+                return f"\"{title}\"", source
+                
+    except Exception as e:
+        print(f"Error fetching quote: {e}")
         
-        # identify the publisher or news provider
-        source = story.get('publisher') or \
-                 story.get('provider', {}).get('name', 'financial news')
-                 
-        # return the formatted headline and source
-        return f"\"{title}\"", source
-        
-    except Exception:
-        # return a fallback message if the fetch fails
-        return "headline temporarily unavailable.", "yahoo"
+    # Fallback if everything fails
+    return "headline temporarily unavailable.", "API"
