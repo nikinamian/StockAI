@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 from datetime import datetime, timedelta
+from urllib.parse import urlparse # NEW: library to parse URLs
 
 def get_supporting_quote(symbol, sentiment_score=0.0):
     try:
@@ -16,8 +17,6 @@ def get_supporting_quote(symbol, sentiment_score=0.0):
             if news and len(news) > 0:
                 pos_words = ['growth', 'profit', 'up', 'surge', 'buy', 'bull', 'strong', 'beat', 'higher', 'upgrade']
                 neg_words = ['drop', 'loss', 'down', 'fall', 'sell', 'bear', 'weak', 'miss', 'lower', 'downgrade']
-                
-                # NEW: Filter out comparative articles to avoid the "Buy X over Y" trap
                 exclude_words = [' over ', ' vs ', ' versus ', ' instead ']
                 
                 best_story = news[0] 
@@ -25,7 +24,6 @@ def get_supporting_quote(symbol, sentiment_score=0.0):
                 for story in news[:15]:
                     title = story.get('headline', '').lower()
                     
-                    # Skip the story entirely if it contains comparative words
                     if any(ex in title for ex in exclude_words):
                         continue
                     
@@ -39,13 +37,19 @@ def get_supporting_quote(symbol, sentiment_score=0.0):
                         best_story = story
                 
                 title = best_story.get('headline', "Market update for " + symbol)
-                source = best_story.get('source', "Financial News")
-                article_url = best_story.get('url', '#') # Grab the URL here!
+                article_url = best_story.get('url', '#')
                 
-                # Return all THREE variables
-                return f"\"{title}\"", source, article_url  
+                # NEW: Force the source name to match the actual destination link
+                if article_url != '#':
+                    domain = urlparse(article_url).netloc
+                    # Clean up the prefix for a cleaner UI (e.g., 'www.fool.com' -> 'FOOL.COM')
+                    source = domain.replace('www.', '').replace('finance.', '').upper()
+                else:
+                    source = best_story.get('source', "FINANCIAL NEWS").upper()
+                
+                return f"\"{title}\"", source, article_url
                 
     except Exception as e:
         print(f"Error fetching quote: {e}")
         
-    return "headline temporarily unavailable.", "API"
+    return "headline temporarily unavailable.", "API", "#"
