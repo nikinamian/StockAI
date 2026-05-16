@@ -8,7 +8,8 @@ def get_stock_sentiment(ticker):
     if not API_KEY:
         return 0.0 
     
-    url = f'https://newsapi.org/v2/everything?q={ticker}&apiKey={API_KEY}&language=en&pageSize=10&sortBy=relevancy'
+    # Instead of just the ticker, search for the ticker + stock
+    url = f'https://newsapi.org/v2/everything?q={ticker} stock&apiKey={API_KEY}&language=en&pageSize=10&sortBy=relevancy'
     
     try:
         response = requests.get(url)
