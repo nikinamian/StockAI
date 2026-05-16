@@ -27,3 +27,7 @@ Thumbs.db
 .venv/
 venv/
 env/
+
+# Streamlit secrets (api keys)
+.streamlit/secrets.toml
+.streamlit/ 
