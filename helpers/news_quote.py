@@ -1,7 +1,6 @@
 import streamlit as st
 import requests
 from datetime import datetime, timedelta
-from urllib.parse import urlparse
 
 def get_supporting_quote(symbol, sentiment_score=0.0):
     try:
@@ -17,53 +16,60 @@ def get_supporting_quote(symbol, sentiment_score=0.0):
             if news and len(news) > 0:
                 pos_words = ['growth', 'profit', 'up', 'surge', 'buy', 'bull', 'strong', 'beat', 'higher', 'upgrade']
                 neg_words = ['drop', 'loss', 'down', 'fall', 'sell', 'bear', 'weak', 'miss', 'lower', 'downgrade']
+                
+                # Filter out comparative articles to avoid the "Buy X over Y" trap
                 exclude_words = [' over ', ' vs ', ' versus ', ' instead ']
                 
                 best_story = news[0] 
                 
+                # Scan the top 15 recent articles for a headline that matches the mood
                 for story in news[:15]:
                     title = story.get('headline', '').lower()
                     
+                    # Skip the story entirely if it contains comparative words
                     if any(ex in title for ex in exclude_words):
                         continue
                     
+                    # If bullish, find a bullish headline
                     if sentiment_score > 0.2 and any(w in title for w in pos_words):
                         best_story = story
                         break
+                    # If bearish, find a bearish headline
                     elif sentiment_score < -0.2 and any(w in title for w in neg_words):
                         best_story = story
                         break
+                    # If neutral, try to find a headline mentioning the ticker
                     elif symbol.lower() in title:
                         best_story = story
                 
                 title = best_story.get('headline', "Market update for " + symbol)
                 article_url = best_story.get('url', '#')
                 
-                # NEW: A dictionary to make the source names look professional
+                # Grab Finnhub's official source string and make it uppercase
+                raw_source = best_story.get('source', 'FINANCIAL NEWS').upper()
+                
+                # We map the raw source names to make them look professional
                 source_map = {
-                    'fool.com': 'THE MOTLEY FOOL',
-                    'seekingalpha.com': 'SEEKING ALPHA',
-                    'benzinga.com': 'BENZINGA',
-                    'cnbc.com': 'CNBC',
-                    'reuters.com': 'REUTERS',
-                    'bloomberg.com': 'BLOOMBERG',
-                    'marketwatch.com': 'MARKETWATCH',
-                    'wsj.com': 'THE WALL STREET JOURNAL',
-                    'finance.yahoo.com': 'YAHOO FINANCE'
+                    'YAHOO': 'YAHOO FINANCE',
+                    'MOTLEY FOOL': 'THE MOTLEY FOOL',
+                    'SEEKINGALPHA': 'SEEKING ALPHA',
+                    'PRNEWSWIRE': 'PR NEWSWIRE',
+                    'GLOBENEWSWIRE': 'GLOBE NEWSWIRE',
+                    'WSJ': 'THE WALL STREET JOURNAL',
+                    'CNBC': 'CNBC',
+                    'REUTERS': 'REUTERS',
+                    'BLOOMBERG': 'BLOOMBERG',
+                    'MARKETWATCH': 'MARKETWATCH'
                 }
                 
-                if article_url != '#':
-                    # Grab the raw domain (e.g., 'www.fool.com') and strip the 'www.'
-                    domain = urlparse(article_url).netloc.replace('www.', '')
-                    
-                    # Look up the domain in our map. If it's not there, just uppercase the domain.
-                    source = source_map.get(domain, domain.upper())
-                else:
-                    source = best_story.get('source', "FINANCIAL NEWS").upper()
+                # Look up the source in our map. If it's not there, just use the raw source.
+                source = source_map.get(raw_source, raw_source)
                 
+                # Return all THREE variables back to main.py
                 return f"\"{title}\"", source, article_url
                 
     except Exception as e:
         print(f"Error fetching quote: {e}")
         
+    # Make sure the fallback also returns three items so the app doesn't crash
     return "headline temporarily unavailable.", "API", "#"
