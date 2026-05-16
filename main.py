@@ -52,8 +52,8 @@ def run_analysis():
             current = ai_results['current_price']
             upside = ((target - current) / current) * 100 if target > 0 else 0
 
-            evidence, source = get_supporting_quote(symbol, sentiment)
-
+            evidence, source, article_url = get_supporting_quote(symbol, sentiment)
+            
             st.header(f"--- {symbol} ANALYSIS ---")
             
             col1, col2, col3, col4, col5 = st.columns(5)
@@ -90,7 +90,12 @@ def run_analysis():
             st.divider()
             st.subheader(f"OVERALL VERDICT: {final_v}")
             st.write(f"**REASONING:** {note}")
-            st.info(f"📢 EVIDENCE FROM {source.upper()}:\n   {evidence}")
+            
+            # Use Markdown to create the clickable link
+            if article_url != '#':
+                st.info(f"📢 EVIDENCE FROM {source.upper()}:\n   {evidence} \n\n [Want to read more?]({article_url})")
+            else:
+                st.info(f"📢 EVIDENCE FROM {source.upper()}:\n   {evidence}")
 
             st.subheader("Visual Chart")
             show_plot(symbol, ai_results['plot_data'], analyst_target=target)

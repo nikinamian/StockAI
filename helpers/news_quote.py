@@ -40,8 +40,10 @@ def get_supporting_quote(symbol, sentiment_score=0.0):
                 
                 title = best_story.get('headline', "Market update for " + symbol)
                 source = best_story.get('source', "Financial News")
+                article_url = best_story.get('url', '#') # Grab the URL here!
                 
-                return f"\"{title}\"", source
+                # Return all THREE variables
+                return f"\"{title}\"", source, article_url  
                 
     except Exception as e:
         print(f"Error fetching quote: {e}")
