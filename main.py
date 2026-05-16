@@ -93,9 +93,9 @@ def run_analysis():
             
             # Use Markdown to create the clickable link
             if article_url != '#':
-                st.info(f"📢 EVIDENCE FROM {source.upper()}:\n   {evidence} \n\n [Want to read more?]({article_url})")
+                st.info(f"📢 NEWS:\n   {evidence} \n\n [Want to read more?]({article_url})")
             else:
-                st.info(f"📢 EVIDENCE FROM {source.upper()}:\n   {evidence}")
+                st.info(f"📢 NEWS:\n   {evidence}")
 
             st.subheader("Visual Chart")
             show_plot(symbol, ai_results['plot_data'], analyst_target=target)
