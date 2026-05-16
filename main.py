@@ -61,22 +61,28 @@ def run_analysis():
                 # Update current price to be up-to-the-minute
                 current = live_info.get('currentPrice', live_info.get('regularMarketPrice', current))
                 
-                # Get the day's percentage change safely
+                # Get the day's percentage and DOLLAR change safely
                 day_change = live_info.get('regularMarketChangePercent', 0.0)
+                day_change_dol = live_info.get('regularMarketChange', 0.0)
+                
                 if day_change is None: day_change = 0.0
+                if day_change_dol is None: day_change_dol = 0.0
                 
                 # Look for After Hours data
                 ah_price = live_info.get('postMarketPrice')
                 ah_change = live_info.get('postMarketChangePercent')
+                ah_change_dol = live_info.get('postMarketChange')
             except Exception:
                 day_change = 0.0
+                day_change_dol = 0.0
                 ah_price = None
                 ah_change = None
+                ah_change_dol = None
             # ---------------------------------------------------------
 
             upside = ((final_target - current) / current) * 100 if final_target > 0 else 0
             
-            # 3. News Quote Data (Now expects 3 variables!)
+            # 3. News Quote Data 
             evidence, source, article_url = get_supporting_quote(symbol, sentiment)
 
             # --- RENDER DASHBOARD ---
@@ -84,12 +90,17 @@ def run_analysis():
             
             col1, col2, col3, col4, col5 = st.columns(5)
             
+            # Format the delta string so the + or - is in front of the $ sign
+            day_sign = "+" if day_change_dol >= 0 else "-"
+            delta_str = f"{day_sign}${abs(day_change_dol):.2f} ({day_change:+.2f}%) Today"
+            
             # Use Streamlit's built-in green/red delta indicator
-            col1.metric("Current Price", f"${current:.2f}", f"{day_change:+.2f}% Today")
+            col1.metric("Current Price", f"${current:.2f}", delta_str)
             
             # Add a tiny caption for After Hours if the market is closed
-            if ah_price and ah_change is not None:
-                col1.caption(f"🌙 After Hours: ${ah_price:.2f} ({ah_change:+.2f}%)")
+            if ah_price and ah_change is not None and ah_change_dol is not None:
+                ah_sign = "+" if ah_change_dol >= 0 else "-"
+                col1.caption(f"🌙 After Hours: ${ah_price:.2f} ({ah_sign}${abs(ah_change_dol):.2f} | {ah_change:+.2f}%)")
                 
             col2.metric("Market Sentiment", f"{sentiment:+.2f}")
             col3.metric("AI Prediction", f"${ai_results['prediction']:.2f}", f"{ai_results['pct_change']:+.2f}%")
@@ -126,9 +137,9 @@ def run_analysis():
             
             # Display evidence with a clickable hyperlink
             if article_url != '#':
-                st.info(f"📢 NEWS:\n   {evidence}\n\n[Want to read more?]({article_url})")
+                st.info(f"📢 EVIDENCE FROM {source}:\n   {evidence}\n\n[Want to read more?]({article_url})")
             else:
-                st.info(f"📢 NEWS:\n   {evidence}")
+                st.info(f"📢 EVIDENCE FROM {source}:\n   {evidence}")
 
             st.subheader("Visual Chart")
             show_plot(symbol, ai_results['plot_data'], analyst_target=final_target)
