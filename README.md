@@ -1,8 +1,11 @@
 Try it out! https://tickertalkai.streamlit.app/ 
 
-<img width="890" height="425" alt="tickertalk ex1" src="https://github.com/user-attachments/assets/6b0bc706-5310-4c8d-8500-88232ad73061" />
+<img width="1020" height="472" alt="Screen Shot 2026-05-15 at 9 49 43 PM" src="https://github.com/user-attachments/assets/eb83b81a-50a3-4bde-ba29-954d0bcf1e92" />
+<img width="1001" height="284" alt="Screen Shot 2026-05-15 at 9 49 55 PM" src="https://github.com/user-attachments/assets/023b69c4-1fc5-43cc-8cc7-bc1a2f6c41d2" />
+<img width="943" height="344" alt="Screen Shot 2026-05-15 at 10 05 26 PM" src="https://github.com/user-attachments/assets/12ed301b-84be-4718-bfad-abfc9d8ee905" />
 
-<img width="860" height="582" alt="Screenshot 2026-01-18 at 9 43 56 PM" src="https://github.com/user-attachments/assets/543fdc0a-40a1-4960-be11-11fc8717f792" />
+
+
 
 A personal stock analyzer pulling data from the news and real-time prices.
 Limit your time researching with this quick AI analyzer!
