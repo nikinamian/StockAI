@@ -1,5 +1,6 @@
 import streamlit as st 
 import yfinance as yf 
+from datetime import datetime
 from helpers.predictor import predict_next_close, show_plot
 from helpers.sentiment import get_stock_sentiment
 from helpers.analyst import get_analyst_data
@@ -92,13 +93,19 @@ def run_analysis():
             
             # Format the delta string so the + or - is in front of the $ sign
             day_sign = "+" if day_change_dol >= 0 else "-"
-            delta_str = f"{day_sign}${abs(day_change_dol):.2f} ({day_change:+.2f}%) Today"
+            
+            # Switch label based on whether it is the weekend (5 = Saturday, 6 = Sunday)
+            if datetime.now().weekday() >= 5:
+                time_label = "Last Close"
+            else:
+                time_label = "Today"
+                
+            delta_str = f"{day_sign}${abs(day_change_dol):.2f} ({day_change:+.2f}%) {time_label}"
             
             # Use Streamlit's built-in green/red delta indicator
             col1.metric("Current Price", f"${current:.2f}", delta_str)
             
             # Add a tiny caption for After Hours if the market is closed
-            # Note the backslashes (\) before the $ signs to prevent Streamlit from formatting it as math!
             if ah_price and ah_change is not None and ah_change_dol is not None:
                 ah_sign = "+" if ah_change_dol >= 0 else "-"
                 col1.caption(f"🌙 After Hours: \${ah_price:.2f} ({ah_sign}\${abs(ah_change_dol):.2f} | {ah_change:+.2f}%)")
@@ -138,9 +145,9 @@ def run_analysis():
             
             # Display evidence with a clickable hyperlink
             if article_url != '#':
-                st.info(f"📢 NEWS:\n   {evidence}\n\n[Want to read more?]({article_url})")
+                st.info(f"📢 EVIDENCE FROM {source}:\n   {evidence}\n\n[Want to read more?]({article_url})")
             else:
-                st.info(f"📢 NEWS:\n   {evidence}")
+                st.info(f"📢 EVIDENCE FROM {source}:\n   {evidence}")
 
             st.subheader("Visual Chart")
             show_plot(symbol, ai_results['plot_data'], analyst_target=final_target)
